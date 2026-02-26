@@ -49,7 +49,7 @@ export function formatContextForPrompt(context: CoachingContext): string {
   const lines: string[] = [];
 
   lines.push(`## Today: ${context.dayOfWeek}, ${context.date}`);
-  lines.push(`Week ${context.weekNumber} of 12\n`);
+  lines.push(`Week ${context.weekNumber} of 14\n`);
 
   // Scheduled session
   lines.push(`## Scheduled Session`);
@@ -75,9 +75,12 @@ export function formatContextForPrompt(context: CoachingContext): string {
 
   // Whoop data
   lines.push(`\n## Whoop Data`);
+  if (context.whoopRecoveryFallback) {
+    lines.push(`- Note: Today's recovery data not yet available. Using yesterday's recovery as reference.`);
+  }
   if (context.whoop.recovery) {
     lines.push(
-      `- Recovery Score: ${context.whoop.recovery.recovery_score}%`
+      `- Recovery Score: ${context.whoop.recovery.recovery_score}%${context.whoopRecoveryFallback ? " (yesterday)" : ""}`
     );
     lines.push(
       `- HRV: ${context.whoop.recovery.heart_rate_variability_rmssd.toFixed(1)} ms`

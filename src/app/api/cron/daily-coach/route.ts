@@ -4,9 +4,9 @@ import { buildDailyContext, formatContextForPrompt, updateRollingContext } from 
 import { generateDailyCoaching } from "@/lib/ai/coach";
 import { buildDailyEmailHtml } from "@/lib/email/templates";
 import { sendDailyCoachingEmail } from "@/lib/email/send";
-import { setDailyLog } from "@/lib/redis";
+import { setDailyLog, getDailyLog } from "@/lib/redis";
 import { CRON_SECRET } from "@/lib/config/constants";
-import type { DailyLog } from "@/types";
+import type { DailyLog, WhoopDayData } from "@/types";
 
 export async function GET(request: NextRequest) {
   // Verify cron secret
@@ -19,8 +19,9 @@ export async function GET(request: NextRequest) {
   const dateStr = now.toISOString().split("T")[0];
 
   try {
-    // 1. Fetch Whoop data
-    let whoopData;
+    // 1. Fetch Whoop data (fall back to yesterday if today's is missing)
+    let whoopData: WhoopDayData;
+    let usedFallback = false;
     try {
       whoopData = await fetchTodayWhoopData();
     } catch (error) {
@@ -28,8 +29,23 @@ export async function GET(request: NextRequest) {
       whoopData = { recovery: null, sleep: null, strain: null };
     }
 
+    if (!whoopData.recovery) {
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
+      const yesterdayLog = await getDailyLog(yesterdayStr);
+      if (yesterdayLog?.whoopData?.recovery) {
+        whoopData = { ...whoopData, recovery: yesterdayLog.whoopData.recovery };
+        usedFallback = true;
+        console.log("Using yesterday's recovery data as fallback");
+      }
+    }
+
     // 2. Build context
     const context = await buildDailyContext(now, whoopData);
+    if (usedFallback) {
+      context.whoopRecoveryFallback = true;
+    }
 
     // 3. Generate coaching content via Claude
     const coachingContent = await generateDailyCoaching(context);

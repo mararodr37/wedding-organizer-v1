@@ -87,6 +87,7 @@ export interface CoachingContext {
   weekNumber: number;
   scheduledSession: TrainingDay;
   whoop: WhoopDayData;
+  whoopRecoveryFallback?: boolean;
   yesterdayReplies: UserReply[];
   rollingContext: string;
 }
