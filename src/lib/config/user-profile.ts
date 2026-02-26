@@ -25,7 +25,8 @@ export const userProfile = {
     interpretation:
       "Majority of weight loss came from lean mass. Primary goal is reversing this trend with muscle gain.",
   },
-  goal: "Bridal muscle recomposition: gain 3-5 lbs (mostly lean mass) over 12 weeks",
+  weddingDate: "2026-06-06",
+  goal: "Bridal muscle recomposition: gain 3-5 lbs (mostly lean mass) over 14 weeks leading to wedding on June 6",
   targetWeight: { min: 124, max: 126 },
   metabolicTargets: {
     estimatedTdee: { min: 1900, max: 2100 },
