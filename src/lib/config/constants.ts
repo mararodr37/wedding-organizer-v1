@@ -10,6 +10,6 @@ export const WHOOP_AUTH_URL =
 export const WHOOP_TOKEN_URL =
   "https://api.prod.whoop.com/oauth/oauth2/token";
 export const WHOOP_API_BASE =
-  "https://api.prod.whoop.com/developer/v1";
+  "https://api.prod.whoop.com/developer/v2";
 export const WHOOP_SCOPES =
   "read:recovery read:cycles read:sleep read:profile read:body_measurement offline";

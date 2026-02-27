@@ -14,8 +14,8 @@ export interface WhoopRecoveryScore {
 }
 
 export interface WhoopRecovery {
-  cycle_id: number;
-  sleep_id: number | string;
+  cycle_id: string | number;
+  sleep_id: string | number;
   user_id?: number;
   score_state?: "SCORED" | "PENDING_SCORE" | "UNSCORABLE";
   score: WhoopRecoveryScore;
@@ -40,7 +40,7 @@ export interface WhoopSleepScore {
 }
 
 export interface WhoopSleep {
-  id: number;
+  id: string | number;
   start: string;
   end: string;
   score: WhoopSleepScore;
@@ -48,9 +48,10 @@ export interface WhoopSleep {
 }
 
 export interface WhoopCycle {
-  id: number;
+  id: string | number;
   start: string;
   end: string | null;
+  score_state?: "SCORED" | "PENDING_SCORE" | "UNSCORABLE";
   score: {
     strain: number;
     kilojoule: number;

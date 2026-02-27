@@ -41,27 +41,16 @@ async function whoopFetch<T>(path: string): Promise<T> {
 }
 
 export async function fetchLatestRecovery(): Promise<WhoopRecovery | null> {
-  // Recovery is accessed through cycles — get latest cycle, then its recovery
-  const cycleData = await whoopFetch<{ records: WhoopCycle[] }>(
-    "/cycle?limit=1"
+  // v2 has a standalone /recovery collection endpoint
+  const data = await whoopFetch<{ records: WhoopRecovery[] }>(
+    "/recovery?limit=1"
   );
-  const latestCycle = cycleData.records?.[0];
-  if (!latestCycle) return null;
-
-  try {
-    const recovery = await whoopFetch<WhoopRecovery>(
-      `/cycle/${latestCycle.id}/recovery`
-    );
-    // Only return if actually scored
-    if (recovery.score_state && recovery.score_state !== "SCORED") {
-      console.log(`Recovery score_state: ${recovery.score_state}, skipping`);
-      return null;
-    }
-    return recovery;
-  } catch {
-    // 404 means no recovery for this cycle yet
+  const recovery = data.records?.[0] ?? null;
+  if (recovery && recovery.score_state && recovery.score_state !== "SCORED") {
+    console.log(`Recovery score_state: ${recovery.score_state}, skipping`);
     return null;
   }
+  return recovery;
 }
 
 export async function fetchLatestSleep(): Promise<WhoopSleep | null> {
@@ -82,9 +71,18 @@ export async function fetchLatestCycle(): Promise<WhoopCycle | null> {
 
 export async function fetchTodayWhoopData(): Promise<WhoopDayData> {
   const [recovery, sleep, cycle] = await Promise.all([
-    fetchLatestRecovery().catch(() => null),
-    fetchLatestSleep().catch(() => null),
-    fetchLatestCycle().catch(() => null),
+    fetchLatestRecovery().catch((e) => {
+      console.warn("Recovery fetch failed:", e);
+      return null;
+    }),
+    fetchLatestSleep().catch((e) => {
+      console.warn("Sleep fetch failed:", e);
+      return null;
+    }),
+    fetchLatestCycle().catch((e) => {
+      console.warn("Cycle fetch failed:", e);
+      return null;
+    }),
   ]);
 
   const totalSleepMs =
