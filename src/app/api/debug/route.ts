@@ -1,18 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getValidAccessToken } from "@/lib/whoop/auth";
+import { WHOOP_API_BASE, CRON_SECRET } from "@/lib/config/constants";
+import { fetchTodayWhoopData } from "@/lib/whoop/client";
 
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Debug endpoint disabled in production" }, { status: 403 });
+  // Protect with cron secret instead of blocking production
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Forward to the daily coach cron with the cron secret
-  const cronUrl = new URL("/api/cron/daily-coach", request.url);
-  const response = await fetch(cronUrl.toString(), {
-    headers: {
-      authorization: `Bearer ${process.env.CRON_SECRET}`,
-    },
-  });
+  try {
+    const token = await getValidAccessToken();
 
-  const data = await response.json();
-  return NextResponse.json({ debug: true, ...data }, { status: response.status });
+    // Fetch raw responses from Whoop API
+    const [rawRecovery, rawSleep, rawCycle] = await Promise.all([
+      fetch(`${WHOOP_API_BASE}/recovery?limit=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+      fetch(`${WHOOP_API_BASE}/activity/sleep?limit=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+      fetch(`${WHOOP_API_BASE}/cycle?limit=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((r) => r.json()),
+    ]);
+
+    // Also get our parsed version
+    const parsed = await fetchTodayWhoopData();
+
+    return NextResponse.json({
+      raw: {
+        recovery: rawRecovery,
+        sleep: rawSleep,
+        cycle: rawCycle,
+      },
+      parsed,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
 }
