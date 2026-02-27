@@ -5,16 +5,19 @@ export interface WhoopTokens {
 }
 
 export interface WhoopRecoveryScore {
+  user_calibrating?: boolean;
   recovery_score: number;
   resting_heart_rate: number;
-  heart_rate_variability_rmssd: number;
+  hrv_rmssd_milli: number;
   spo2_percentage: number | null;
   skin_temp_celsius: number | null;
 }
 
 export interface WhoopRecovery {
   cycle_id: number;
-  sleep_id: number;
+  sleep_id: number | string;
+  user_id?: number;
+  score_state?: "SCORED" | "PENDING_SCORE" | "UNSCORABLE";
   score: WhoopRecoveryScore;
   created_at: string;
   updated_at: string;

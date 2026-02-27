@@ -41,10 +41,27 @@ async function whoopFetch<T>(path: string): Promise<T> {
 }
 
 export async function fetchLatestRecovery(): Promise<WhoopRecovery | null> {
-  const data = await whoopFetch<{ records: WhoopRecovery[] }>(
-    "/recovery?limit=1"
+  // Recovery is accessed through cycles — get latest cycle, then its recovery
+  const cycleData = await whoopFetch<{ records: WhoopCycle[] }>(
+    "/cycle?limit=1"
   );
-  return data.records?.[0] ?? null;
+  const latestCycle = cycleData.records?.[0];
+  if (!latestCycle) return null;
+
+  try {
+    const recovery = await whoopFetch<WhoopRecovery>(
+      `/cycle/${latestCycle.id}/recovery`
+    );
+    // Only return if actually scored
+    if (recovery.score_state && recovery.score_state !== "SCORED") {
+      console.log(`Recovery score_state: ${recovery.score_state}, skipping`);
+      return null;
+    }
+    return recovery;
+  } catch {
+    // 404 means no recovery for this cycle yet
+    return null;
+  }
 }
 
 export async function fetchLatestSleep(): Promise<WhoopSleep | null> {

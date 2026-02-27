@@ -30,7 +30,7 @@ function buildWhoopCard(whoop: WhoopDayData): string {
           </div>
           <div>
             <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">HRV</span>
-            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${recovery.heart_rate_variability_rmssd.toFixed(0)} ms</div>
+            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${recovery.hrv_rmssd_milli.toFixed(0)} ms</div>
           </div>
           <div>
             <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">Resting HR</span>

@@ -83,7 +83,7 @@ export function formatContextForPrompt(context: CoachingContext): string {
       `- Recovery Score: ${context.whoop.recovery.recovery_score}%${context.whoopRecoveryFallback ? " (yesterday)" : ""}`
     );
     lines.push(
-      `- HRV: ${context.whoop.recovery.heart_rate_variability_rmssd.toFixed(1)} ms`
+      `- HRV: ${context.whoop.recovery.hrv_rmssd_milli.toFixed(1)} ms`
     );
     lines.push(
       `- Resting HR: ${context.whoop.recovery.resting_heart_rate} bpm`
