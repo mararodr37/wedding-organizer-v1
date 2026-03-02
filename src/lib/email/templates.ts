@@ -19,42 +19,49 @@ function buildWhoopCard(whoop: WhoopDayData): string {
     ? recoveryColor(recovery.recovery_score)
     : { bg: "#f9fafb", text: "#374151", label: "N/A" };
 
+  const cells: string[] = [];
+
+  if (recovery) {
+    cells.push(`
+      <td style="padding: 0 16px 0 0; vertical-align: top;">
+        <div style="font-size: 11px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Recovery</div>
+        <div style="font-size: 28px; font-weight: 700; color: ${color.text}; line-height: 1;">${recovery.recovery_score}%</div>
+      </td>`);
+    cells.push(`
+      <td style="padding: 0 16px; vertical-align: top; border-left: 1px solid ${recovery.recovery_score >= 67 ? '#a7f3d0' : recovery.recovery_score >= 34 ? '#fde68a' : '#fecaca'};">
+        <div style="font-size: 11px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">HRV</div>
+        <div style="font-size: 20px; font-weight: 600; color: ${color.text}; line-height: 1;">${recovery.hrv_rmssd_milli.toFixed(0)} <span style="font-size: 12px; font-weight: 400;">ms</span></div>
+      </td>`);
+    cells.push(`
+      <td style="padding: 0 16px; vertical-align: top; border-left: 1px solid ${recovery.recovery_score >= 67 ? '#a7f3d0' : recovery.recovery_score >= 34 ? '#fde68a' : '#fecaca'};">
+        <div style="font-size: 11px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Resting HR</div>
+        <div style="font-size: 20px; font-weight: 600; color: ${color.text}; line-height: 1;">${recovery.resting_heart_rate} <span style="font-size: 12px; font-weight: 400;">bpm</span></div>
+      </td>`);
+  }
+
+  if (whoop.sleep) {
+    cells.push(`
+      <td style="padding: 0 16px; vertical-align: top;${recovery ? ` border-left: 1px solid ${recovery.recovery_score >= 67 ? '#a7f3d0' : recovery.recovery_score >= 34 ? '#fde68a' : '#fecaca'};` : ''}">
+        <div style="font-size: 11px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Sleep</div>
+        <div style="font-size: 20px; font-weight: 600; color: ${color.text}; line-height: 1;">${whoop.sleep.totalSleepHours} <span style="font-size: 12px; font-weight: 400;">hrs</span></div>
+      </td>`);
+  }
+
+  if (whoop.strain !== null) {
+    cells.push(`
+      <td style="padding: 0 0 0 16px; vertical-align: top; border-left: 1px solid ${recovery ? (recovery.recovery_score >= 67 ? '#a7f3d0' : recovery.recovery_score >= 34 ? '#fde68a' : '#fecaca') : '#e5e7eb'};">
+        <div style="font-size: 11px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Strain</div>
+        <div style="font-size: 20px; font-weight: 600; color: ${color.text}; line-height: 1;">${whoop.strain.toFixed(1)}</div>
+      </td>`);
+  }
+
   return `
-    <div style="padding: 16px; background: ${color.bg}; border-radius: 8px; margin-bottom: 24px; border: 1px solid ${color.bg};">
-      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-        ${
-          recovery
-            ? `<div>
-            <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">Recovery</span>
-            <div style="font-size: 24px; font-weight: 600; color: ${color.text};">${recovery.recovery_score}%</div>
-          </div>
-          <div>
-            <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">HRV</span>
-            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${recovery.hrv_rmssd_milli.toFixed(0)} ms</div>
-          </div>
-          <div>
-            <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">Resting HR</span>
-            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${recovery.resting_heart_rate} bpm</div>
-          </div>`
-            : ""
-        }
-        ${
-          whoop.sleep
-            ? `<div>
-            <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">Sleep</span>
-            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${whoop.sleep.totalSleepHours}h</div>
-          </div>`
-            : ""
-        }
-        ${
-          whoop.strain !== null
-            ? `<div>
-            <span style="font-size: 12px; color: ${color.text}; text-transform: uppercase; letter-spacing: 0.05em;">Strain</span>
-            <div style="font-size: 18px; font-weight: 500; color: ${color.text};">${whoop.strain.toFixed(1)}</div>
-          </div>`
-            : ""
-        }
-      </div>
+    <div style="padding: 16px; background: ${color.bg}; border-radius: 8px; margin-bottom: 24px;">
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+        <tr>
+          ${cells.join("")}
+        </tr>
+      </table>
     </div>`;
 }
 
