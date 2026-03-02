@@ -94,6 +94,7 @@ export interface CoachingContext {
   whoopRecoveryFallback?: boolean;
   yesterdayReplies: UserReply[];
   rollingContext: string;
+  beauty?: BeautyDayResult;
 }
 
 export interface TrainingDay {
@@ -106,3 +107,50 @@ export interface TrainingDay {
 }
 
 export type WeeklySchedule = Record<string, TrainingDay>;
+
+// --- Beauty Types ---
+
+export type RoutineType =
+  | "morning_default"
+  | "night_metacine"
+  | "night_retinoid"
+  | "night_bha"
+  | "night_hydration_only"
+  | "postcare";
+
+export interface BeautyRoutine {
+  name: RoutineType;
+  label: string;
+  steps: string[];
+}
+
+export interface Procedure {
+  type: string;
+  date: string;
+  label: string;
+  details?: string[];
+  preCare?: {
+    stopRetinoidDaysBefore: number;
+    stopBhaDaysBefore: number;
+  };
+  postCare?: {
+    daysAfter: number;
+    steps: string[];
+  };
+}
+
+export interface BeautyDayResult {
+  date: string;
+  morningRoutine: BeautyRoutine;
+  eveningRoutine: BeautyRoutine;
+  specialNotes: string[];
+  upcomingProcedures: Array<{ procedure: Procedure; daysUntil: number }>;
+  activePostCare: Array<{ procedure: Procedure; daysSince: number }>;
+}
+
+// --- Chat Types ---
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}

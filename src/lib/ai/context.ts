@@ -1,5 +1,6 @@
 import { getReplies, getRollingContext, getDailyLog, setRollingContext } from "@/lib/redis";
 import { getTodaySchedule, getWeekNumber } from "@/lib/config/training-plan";
+import { getTodayBeautyRoutine } from "@/lib/config/beauty-profile";
 import { PROGRAM_START_DATE } from "@/lib/config/constants";
 import type { WhoopDayData, CoachingContext } from "@/types";
 
@@ -27,6 +28,8 @@ export async function buildDailyContext(
     getRollingContext(),
   ]);
 
+  const beauty = getTodayBeautyRoutine(date);
+
   return {
     date: dateStr,
     dayOfWeek: schedule.dayName.charAt(0).toUpperCase() + schedule.dayName.slice(1),
@@ -42,6 +45,7 @@ export async function buildDailyContext(
     whoop: whoopData,
     yesterdayReplies,
     rollingContext,
+    beauty,
   };
 }
 
@@ -113,6 +117,31 @@ export function formatContextForPrompt(context: CoachingContext): string {
 
   if (context.whoop.strain !== null) {
     lines.push(`- Yesterday's Strain: ${context.whoop.strain.toFixed(1)}`);
+  }
+
+  // Beauty & Skincare
+  if (context.beauty) {
+    lines.push(`\n## Beauty & Skincare`);
+    lines.push(`- Evening Routine: ${context.beauty.eveningRoutine.label}`);
+    lines.push(`- Steps: ${context.beauty.eveningRoutine.steps.join(" → ")}`);
+
+    if (context.beauty.specialNotes.length > 0) {
+      for (const note of context.beauty.specialNotes) {
+        lines.push(`- ${note}`);
+      }
+    }
+
+    if (context.beauty.upcomingProcedures.length > 0) {
+      for (const up of context.beauty.upcomingProcedures) {
+        lines.push(`- Upcoming: ${up.procedure.label} in ${up.daysUntil} day${up.daysUntil !== 1 ? "s" : ""} (${up.procedure.date})`);
+      }
+    }
+
+    if (context.beauty.activePostCare.length > 0) {
+      for (const pc of context.beauty.activePostCare) {
+        lines.push(`- Active post-care: ${pc.procedure.label} (day ${pc.daysSince} post-procedure)`);
+      }
+    }
   }
 
   // Yesterday's replies
